@@ -28,7 +28,7 @@ function Sidebar() {
           <DocumentTextIcon className="h-5 w-5 mr-2" />
           {isOpen && <span>Research Reports</span>}
         </Link>
-        <Link href="/api-playground" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <Link href="/playground" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
           <KeyIcon className="h-5 w-5 mr-2" />
           {isOpen && <span>API Playground</span>}
         </Link>
