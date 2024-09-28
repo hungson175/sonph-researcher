@@ -13,9 +13,9 @@ export async function summarizeGitHubRepo(url) {
     throw new Error('Invalid GitHub URL');
   }
 
-  // Initialize OpenAI model with GPT-4
+  // Initialize OpenAI model with GPT-4o
   const model = new OpenAI({ 
-    modelName: "gpt-4",
+    modelName: "gpt-4o",
     temperature: 0 
   });
 
