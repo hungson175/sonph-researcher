@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { summarizeGitHubRepo } from './githubSummarizer';
 import { validateApiKey, incrementApiKeyUsage } from './apiKeyManager';
-import { summarizeGitHubRepo } from './githubSummarizer';
-import { validateApiKey, incrementApiKeyUsage } from './apiKeyManager';
 
 export async function POST(req) {
   try {
