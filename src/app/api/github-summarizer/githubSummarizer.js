@@ -1,11 +1,13 @@
-import { OpenAI } from '@langchain/openai';
+import { ChatOpenAI } from "@langchain/openai";
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { PromptTemplate } from "langchain/prompts";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "langchain/output_parsers";
-import { RunnableSequence } from "langchain/schema/runnable";
+import { RunnableSequence } from "@langchain/core/runnables";
 import { z } from "zod";
+
+const LLM_MODEL_NAME = process.env.LLM_MODEL_NAME || "gpt-4o-mini";
 
 export async function summarizeGitHubRepo(url) {
   // Validate URL
@@ -13,9 +15,9 @@ export async function summarizeGitHubRepo(url) {
     throw new Error('Invalid GitHub URL');
   }
 
-  // Initialize OpenAI model with GPT-4o
-  const model = new OpenAI({ 
-    modelName: "gpt-4o",
+  // Initialize OpenAI model with the environment variable
+  const model = new ChatOpenAI({ 
+    modelName: LLM_MODEL_NAME,
     temperature: 0 
   });
 
