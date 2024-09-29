@@ -1,4 +1,5 @@
 import Image from "next/image";
+import LoginButton from "./LoginButton";
 
 export default function Home() {
   return (
@@ -53,6 +54,7 @@ export default function Home() {
           >
             Manage API keys
           </a>
+          <LoginButton />
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">

@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSession } from "next-auth/react";
 import { supabase } from '../../lib/supabaseClient';
 import Sidebar from '../../components/Sidebar';
 import ApiKeyList from '../../components/ApiKeyList';
 import ApiKeyModal from '../../components/ApiKeyModal';
+import { withAuth } from "../components/withAuth";
 
 function generateRandomKey() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-export default function Dashboard() {
+export default withAuth(function Dashboard() {
+  const { data: session } = useSession();
   const [apiKeys, setApiKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -90,7 +93,7 @@ export default function Dashboard() {
 
   return (
     <div className='flex'>
-      <Sidebar />
+      <Sidebar user={session?.user} />
       <div className="flex-1 p-8">
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg text-white mb-8">
           <h1 className="text-2xl font-bold mb-2">Researcher</h1>
@@ -146,4 +149,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+});
