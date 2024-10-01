@@ -2,15 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
-import { supabase } from '../../lib/supabaseClient';
 import Sidebar from '../../components/Sidebar';
 import ApiKeyList from '../../components/ApiKeyList';
 import ApiKeyModal from '../../components/ApiKeyModal';
 import { withAuth } from "../components/withAuth";
-
-function generateRandomKey() {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
 
 export default withAuth(function Dashboard() {
   const { data: session } = useSession();
@@ -25,52 +20,84 @@ export default withAuth(function Dashboard() {
   const [editKey, setEditKey] = useState(null);
 
   useEffect(() => {
-    fetchApiKeys();
-  }, []);
+    if (session?.user?.email) {
+      fetchAndSetApiKeys();
+    }
+  }, [session]);
 
-  async function fetchApiKeys() {
-    const { data, error } = await supabase.from('api_keys').select('*');
-    if (error) {
-      console.error('Error fetching API keys:', error);
-    } else {
+  async function fetchAndSetApiKeys() {
+    try {
+      const response = await fetch(`/api/api-keys?email=${encodeURIComponent(session.user.email)}`);
+      if (!response.ok) throw new Error('Failed to fetch API keys');
+      const data = await response.json();
       setApiKeys(data);
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
     }
   }
 
   async function handleAddKey() {
-    const newApiKey = { name: keyName, value: generateRandomKey(), usage: 0 };
-    const { data, error } = await supabase.from('api_keys').insert([newApiKey]).select();
-    if (error) {
-      console.error('Error adding API key:', error);
-    } else {
-      if (data && data.length > 0) {
-        setApiKeys([...apiKeys, data[0]]);
+    try {
+      console.log('Adding key for email:', session.user.email);
+      const response = await fetch('/api/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: keyName, email: session.user.email })
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`);
       }
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      setApiKeys([...apiKeys, data]);
       setKeyName('');
       setIsModalOpen(false);
+      setNotification('API key added successfully');
+    } catch (error) {
+      console.error('Error adding API key:', error);
+      setNotification(`Error: ${error.message}`);
     }
   }
 
   async function handleEditKey() {
-    const { data, error } = await supabase.from('api_keys').update({ name: keyName }).eq('id', editKey.id).select();
-    if (error) {
-      console.error('Error editing API key:', error);
-    } else {
-      if (data && data.length > 0) {
-        setApiKeys(apiKeys.map(key => (key.id === editKey.id ? data[0] : key)));
-      }
+    try {
+      const response = await fetch(`/api/api-keys/${editKey.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: keyName, email: session.user.email })
+      });
+      if (!response.ok) throw new Error('Failed to edit API key');
+      const updatedKey = await response.json();
+      setApiKeys(apiKeys.map(key => (key.id === editKey.id ? updatedKey : key)));
       setKeyName('');
       setIsEditModalOpen(false);
       setEditKey(null);
+    } catch (error) {
+      console.error('Error editing API key:', error);
     }
   }
 
   async function handleDeleteKey(id) {
-    const { error } = await supabase.from('api_keys').delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting API key:', error);
-    } else {
+    try {
+      const response = await fetch(`/api/api-keys/${id}?email=${encodeURIComponent(session.user.email)}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete API key');
       setApiKeys(apiKeys.filter(key => key.id !== id));
+    } catch (error) {
+      console.error('Error deleting API key:', error);
     }
   }
 
